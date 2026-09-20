@@ -1,0 +1,25 @@
+# CSOPESY Marquee Console - generated files that should not be committed.
+# Sources, CMakeLists.txt, font data (*.txt), and docs are intentionally
+# NOT ignored. (Ignoring a pattern never untracks files already committed.)
+
+# Captured console / debugging outputs
+*.out
+
+# Compiled binaries and intermediate build products
+*.exe
+*.o
+*.obj
+# Extensionless binaries produced on Linux/macOS (our CMake target names)
+csopesy
+csopesy_marquee_console
+
+# CMake generated files and out-of-source build trees
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+*.cmake
+Testing/

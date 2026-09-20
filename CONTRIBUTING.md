@@ -1,0 +1,121 @@
+# Contributing to CSOPESY Marquee Console
+
+## Getting started
+
+Prerequisites:
+
+* A C++17 compiler: `g++` (Linux) or MinGW `g++` (Windows).
+* Optional: CMake 3.x and your IDE's toolchain (the repo ships a
+  `CMakeLists.txt` for CLion / IDE builds).
+* No external libraries are permitted; the program uses only the C++
+  Standard Library.
+
+## How to run the program
+
+1. Clone the repository and enter it:
+
+   ```bat
+   git clone <repo-url>
+   cd csopesy-marquee-console
+   ```
+
+2. Build (pick one):
+
+   ```bat
+   g++ -std=c++17 main.cpp -o csopesy.exe
+   ```
+
+   or with CMake:
+
+   ```bat
+   cmake -S . -B build
+   cmake --build build
+   ```
+
+3. Run from the repository root so the program finds its font files
+   (`ascii_art.txt` and `characters.txt` are opened from the working
+   directory):
+
+   ```bat
+   csopesy.exe
+   ```
+
+4. Try a session:
+
+   ```text
+   Command> help
+   Command> set_text Operating Systems are fun!
+   Command> set_speed 150
+   Command> start_marquee
+   Command> stop_marquee
+   Command> exit
+   ```
+
+   To simulate a narrow console (e.g. to check art truncation), set the
+   `COLUMNS` environment variable before running:
+
+   ```bat
+   set COLUMNS=60 && csopesy.exe
+   ```
+
+## Branching conventions
+
+* `main` always builds and passes a smoke session. Never push directly.
+* Create short-lived branches from `main`:
+
+  | Prefix      | Use for                        | Example              |
+  | ----------- | ------------------------------ | -------------------- |
+  | `feature/`  | new behavior                   | `feature/scroll-anim`|
+  | `fix/`      | bug fixes                      | `fix/glyph-spacing`  |
+  | `docs/`     | spec/README/CONTRIBUTING only  | `docs/readme`        |
+  | `chore/`    | build, tooling, housekeeping   | `chore/cmake-tidy`   |
+
+* Keep branches focused: one concern per branch, rebase onto `main`
+  before opening a pull request.
+
+## Commit conventions
+
+We follow Conventional Commits: `type(scope): short summary`.
+
+* Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`,
+  `chore`.
+* Rules:
+  * Use lowercase, imperative mood (`add`, not `added`).
+  * Keep the subject line at most 72 characters.
+  * One logical change per commit; split unrelated edits.
+  * Reference issues where applicable (`Refs #12`).
+
+Examples:
+
+```text
+feat(marquee): add horizontal scroll animation
+fix(font): use natural glyph widths with 1-col gap
+docs(spec): document art truncation at console width
+```
+
+## Code style
+
+* C++17, standard library only (`std::cin` / `std::cout`, no
+  `printf` / third-party libs).
+* Keep the flat layout: sources and data assets stay side by side in
+  the repo root; never load files from `src/` or `assets/`.
+* Console output must stay plain ASCII (no Unicode escapes or
+  non-ASCII literals) so it renders correctly in `cmd`.
+* Document behavior with Doxygen-style comments and keep
+  `SPECIFICATIONS.md` in sync with `main.cpp`.
+
+## Pull request process
+
+1. Open a PR against `main` with a brief description and testing notes.
+2. Confirm: clean `g++ -std=c++17` build with no warnings, plus a smoke
+   session covering `help`, `set_text` (short and long text),
+   `set_speed` (valid and invalid), `start_marquee`, `stop_marquee`,
+   an unknown command, and `exit`.
+3. Update `SPECIFICATIONS.md` and/or `README.md` if behavior changed.
+4. Request one review; address feedback before merging.
+
+## Reporting issues
+
+Include the exact command sequence, the full console output (or a
+screenshot for layout bugs), your console width, compiler version, and
+the expected behavior per `SPECIFICATIONS.md`.
