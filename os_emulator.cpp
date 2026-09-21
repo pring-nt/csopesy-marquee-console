@@ -148,7 +148,6 @@ int main() {
             } else {
                 state.text = args;
                 std::cout << "Text saved for marquee: " << state.text << '\n';
-                std::cout << state.text << '\n';
             }
         } else if (command == "start_marquee") {
             state.running = true;
