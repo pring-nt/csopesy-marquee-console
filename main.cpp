@@ -195,6 +195,14 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
                   << orderPath << ".\n";
         return {};
     }
+    if (artLines.size() % order.size() != 0) {
+        std::cerr << "Warning: " << fontPath << " has " << artLines.size()
+                  << " lines for " << order.size()
+                  << " characters - expected a multiple of " << order.size()
+                  << " (" << order.size() * height << " lines); ignoring "
+                  << (artLines.size() % order.size())
+                  << " trailing line(s).\n";
+    }
     font.height = static_cast<int>(height);
 
     for (const std::string& line : artLines) {
@@ -204,10 +212,15 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
     font.blank = Glyph(font.height, std::string(kBlankWidth, ' '));
 
     for (std::string::size_type i = 0; i < order.size(); ++i) {
-        std::string::size_type natural = 1;
+        std::string::size_type natural = 0;
         for (std::string::size_type row = 0; row < height; ++row) {
             natural = std::max(
                 natural, rightTrim(artLines[i * height + row]).size());
+        }
+        if (natural == 0) {
+            // All-blank block (e.g. the explicit space glyph): keep the
+            // standard blank width instead of collapsing to one column.
+            natural = static_cast<std::string::size_type>(kBlankWidth);
         }
         Glyph glyph;
         glyph.reserve(height);
