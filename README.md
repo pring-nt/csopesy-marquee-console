@@ -74,6 +74,9 @@ with `g++ -std=c++17 os_emulator.cpp -o os_emulator.exe` first.
 To add a case, copy any `TEST` block: pipe command lines into the exe
 with `(echo <command> & echo exit) | os_emulator.exe`. Escape
 `& | < > ^` as `^& ^| ^< ^> ^^` and write a literal `%` as `%%`.
+Never put an odd number of `"` on one piped `(echo ...)` line - an
+unbalanced quote swallows the closing paren/pipe and the rest of the
+script stops; test `"` input by typing it manually.
 
 ## Group developers
 

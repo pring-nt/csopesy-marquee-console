@@ -41,7 +41,10 @@ echo [TEST 2] set_text - plain words, multi-word, punctuation, numbers
 echo.
 (echo set_text Operating Systems are fun! ^& echo exit) | "%EXE%"
 echo.
-(echo set_text Hello, World! Test 123 @#$-_=+;:'".?/ ^& echo exit) | "%EXE%"
+REM NOTE: a literal double-quote char cannot go inside a piped (echo ...)
+REM block - an unbalanced quote swallows the closing paren/pipe and the
+REM rest of this script stops running. Type quote test input manually.
+(echo set_text Hello, World! Test 123 @#$-_=+;:',.?/ ^& echo exit) | "%EXE%"
 echo.
 (echo set_text Fish ^& Chips ^& echo exit) | "%EXE%"
 echo.
