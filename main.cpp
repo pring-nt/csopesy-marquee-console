@@ -2,6 +2,15 @@
  * @file main.cpp
  * @brief Interactive console shell for the CSOPESY marquee.
  *
+ * @par Course
+ *     CSOPESY  ·  Section S01  ·  Group 12
+ *
+ * @authors
+ *     Trinidad, Nathan
+ *     Singh, Nathaniel
+ *     Quilantang, Jann Miro
+ *     Saguin, VL Kirsten Camille
+ *
  * Reads an ASCII-art font from @c ascii_art.txt and the glyph order from
  * @c characters.txt, prints a welcome header, and then runs a command loop
  * that keeps the marquee text, refresh speed, and running flag in memory. The
@@ -54,7 +63,7 @@ const std::vector<std::string> kDevelopers = {
     "Trinidad, Nathan",
     "Singh, Nathaniel",
     "Quilantang, Jann Miro",
-    "Saguin, Kirsten Camille",
+    "Saguin, VL Kirsten Camille",
 };
 
 /// Columns of separation inserted between adjacent glyphs when rendering.

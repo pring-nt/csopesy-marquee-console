@@ -2,6 +2,14 @@
  * @file os_emulator.cpp
  * @brief Interactive console shell for the CSOPESY marquee.
  *
+ * @par Course
+ *     CSOPESY  ·  Section S01  ·  Group 12
+ *
+ * @authors
+ *     Trinidad, Nathan
+ *     Singh, Nathaniel
+ *     Quilantang, Jann Miro
+ *     Saguin, VL Kirsten Camille
  *
  * conversion: the header and @c set_text output display plain text strings
  * directly. No font files are required.
@@ -32,7 +40,7 @@ const std::vector<std::string> kDevelopers = {
     "Trinidad, Nathan",
     "Singh, Nathaniel",
     "Quilantang, Jann Miro",
-    "Saguin, Kirsten Camille",
+    "Saguin, VL Kirsten Camille",
 };
 
 /// Marquee settings carried across commands.

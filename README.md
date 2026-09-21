@@ -80,5 +80,5 @@ script stops; test `"` input by typing it manually.
 
 ## Group developers
 
-Trinidad, Nathan, Singh, Nathaniel, Quilantang, Jann Miro,
-Saguin, Kirsten Camille
+Trinidad, Nathan | Singh, Nathaniel | Quilantang, Jann Miro |
+Saguin, VL Kirsten Camille
