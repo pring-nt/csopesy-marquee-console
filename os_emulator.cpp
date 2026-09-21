@@ -152,11 +152,11 @@ int main() {
         } else if (command == "start_marquee") {
             state.running = true;
             std::cout
-                << "Marquee started. (Animation stub - not yet implemented)\n";
+                << "Marquee started.\n";
         } else if (command == "stop_marquee") {
             state.running = false;
             std::cout
-                << "Marquee stopped. (Animation stub - not yet implemented)\n";
+                << "Marquee stopped.\n";
         } else if (command == "set_speed") {
             int value = 0;
             if (parsePositiveInt(args, value)) {
