@@ -61,37 +61,42 @@ Prerequisites:
 ## Branching conventions
 
 * `main` always builds and passes a smoke session. Never push directly.
-* Create short-lived branches from `main`:
+* Create short-lived branches from `main`. The prefix mirrors the commit
+  type used for the change:
 
-  | Prefix      | Use for                        | Example              |
-  | ----------- | ------------------------------ | -------------------- |
-  | `feature/`  | new behavior                   | `feature/scroll-anim`|
-  | `fix/`      | bug fixes                      | `fix/glyph-spacing`  |
-  | `docs/`     | spec/README/CONTRIBUTING only  | `docs/readme`        |
-  | `chore/`    | build, tooling, housekeeping   | `chore/cmake-tidy`   |
+  | Prefix      | Meaning                                | Example                |
+  | ----------- | -------------------------------------- | ---------------------- |
+  | `feature/`  | new behavior (`feat` commits)          | `feature/scroll-anim`  |
+  | `fix/`      | bug fixes (`fix` commits)              | `fix/glyph-spacing`    |
+  | `docs/`     | spec/README/CONTRIBUTING only          | `docs/readme`          |
+  | `style/`    | formatting with no logic change        | `style/clang-format`   |
+  | `refactor/` | code restructuring, no behavior change | `refactor/font-load`   |
+  | `test/`     | adding or updating tests               | `test/marquee-smoke`   |
+  | `chore/`    | build, tooling, housekeeping           | `chore/cmake-tidy`     |
 
 * Keep branches focused: one concern per branch, rebase onto `main`
-  before opening a pull request.
+  before opening a pull request. Branch scope after the prefix is
+  lowercase with hyphens (`<prefix>/<short-topic>`).
 
 ## Commit conventions
 
 We follow Conventional Commits: `type(scope): short summary`.
 
-* Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`,
-  `chore`.
+| Type       | Meaning                                | Example                                                |
+| ---------- | -------------------------------------- | ------------------------------------------------------ |
+| `feat`     | new behavior or feature                | `feat(marquee): add horizontal scroll animation`       |
+| `fix`      | bug fix                                | `fix(font): use natural glyph widths with 1-col gap`   |
+| `docs`     | documentation only                     | `docs(spec): document art truncation at console width` |
+| `style`    | formatting, no logic change            | `style(header): align welcome banner spacing`          |
+| `refactor` | code restructuring, no behavior change | `refactor(font): simplify glyph width computation`     |
+| `test`     | adding or updating tests               | `test(smoke): cover long-text truncation`              |
+| `chore`    | build, tooling, housekeeping           | `chore(build): tidy cmake post-build copy`             |
+
 * Rules:
   * Use lowercase, imperative mood (`add`, not `added`).
   * Keep the subject line at most 72 characters.
   * One logical change per commit; split unrelated edits.
   * Reference issues where applicable (`Refs #12`).
-
-Examples:
-
-```text
-feat(marquee): add horizontal scroll animation
-fix(font): use natural glyph widths with 1-col gap
-docs(spec): document art truncation at console width
-```
 
 ## Code style
 
