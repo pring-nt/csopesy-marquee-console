@@ -19,6 +19,8 @@
 
 #include "marquee.h"
 
+#include <utility>
+
 #include "config.h"
 
 namespace marquee {
@@ -28,8 +30,8 @@ Marquee::Marquee()
       speedMs_(kDefaultMarqueeSpeed),
       running_(false) {}
 
-Marquee::Marquee(const std::string& text, int speedMs)
-    : text_(text), speedMs_(speedMs), running_(false) {}
+Marquee::Marquee(std::string text, int speedMs)
+    : text_(std::move(text)), speedMs_(speedMs), running_(false) {}
 
 const std::string& Marquee::text() const {
     return text_;

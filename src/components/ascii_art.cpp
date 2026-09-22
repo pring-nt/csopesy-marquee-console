@@ -72,12 +72,12 @@ std::vector<std::string> renderAsciiArt(const std::string& text,
         return rows;
     }
     const std::string upper = toUpper(text);
-    const std::string gap(static_cast<std::string::size_type>(kGlyphGap), ' ');
-    rows.reserve(static_cast<std::vector<std::string>::size_type>(font.height));
+    const std::string gap(kGlyphGap, ' ');
+    rows.reserve(font.height);
     for (int row = 0; row < font.height; ++row) {
         std::string composite;
-        for (std::string::size_type i = 0; i < upper.size(); ++i) {
-            composite += lookupGlyph(font, upper[i])[row];
+        for (const char ch : upper) {
+            composite += lookupGlyph(font, ch)[row];
             composite += gap;
         }
         if (maxWidth >= 0 && static_cast<int>(composite.size()) > maxWidth) {
@@ -91,8 +91,8 @@ std::vector<std::string> renderAsciiArt(const std::string& text,
 void printAsciiArt(const std::string& text, const Font& font, std::ostream& out) {
     const std::vector<std::string> rows =
         renderAsciiArt(text, font, getDisplayWidth());
-    for (std::vector<std::string>::size_type i = 0; i < rows.size(); ++i) {
-        out << rows[i] << '\n';
+    for (const std::string& row : rows) {
+        out << row << '\n';
     }
 }
 

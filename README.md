@@ -55,6 +55,7 @@ os_emulator.cpp           - plain-text variant (no ASCII-art conversion)
 test_os_emulator.bat      - automated smoke test for os_emulator
 SPECIFICATIONS.md         - behavior and font specification
 CONTRIBUTING.md           - conventions and how to build/run
+AGENTS.md                 - hard rules for contributors and AI agents
 ```
 
 Each module pairs a header in `src/include/` with its implementation in

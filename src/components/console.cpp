@@ -23,20 +23,20 @@
 
 namespace marquee {
 
-Console::Console(const Font& font, std::istream& in, std::ostream& out)
-    : font_(font), marquee_(), in_(in), out_(out) {}
+Console::Console(Font font, std::istream& in, std::ostream& out)
+    : font_(std::move(font)), in_(in), out_(out) {}
 
-void Console::printHeader() {
+void Console::printHeader() const {
     printPreview(kDefaultMarqueeText);
     out_ << '\n';
     out_ << "Group developer:\n";
-    for (std::vector<std::string>::size_type i = 0; i < kDevelopers.size(); ++i) {
-        out_ << kDevelopers[i] << '\n';
+    for (const char* developer : kDevelopers) {
+        out_ << developer << '\n';
     }
     out_ << "\nVersion date: " << kVersionDate << "\n\n";
 }
 
-void Console::printHelp() {
+void Console::printHelp() const {
     out_ << "help            - displays the commands and its description\n"
          << "start_marquee   - starts the marquee \"animation\"\n"
          << "stop_marquee    - stops the marquee \"animation\"\n"
@@ -45,7 +45,7 @@ void Console::printHelp() {
          << "exit            - terminates the console\n";
 }
 
-void Console::printPreview(const std::string& text) {
+void Console::printPreview(const std::string& text) const {
     printAsciiArt(text, font_, out_);
 }
 

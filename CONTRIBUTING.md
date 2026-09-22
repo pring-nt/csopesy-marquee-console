@@ -103,6 +103,10 @@ We follow Conventional Commits: `type(scope): short summary`.
 
 ## Code style
 
+> Before writing code, read [AGENTS.md](AGENTS.md). It holds the hard rules:
+> the GCC 6.3 compatibility limits (no if-init statements, no `[[nodiscard]]`),
+> the zero-warning policy, and the module conventions.
+
 * C++17, standard library only (`std::cin` / `std::cout`, no
   `printf` / third-party libs).
 * Keep the module layout: headers live in `src/include/`, implementations

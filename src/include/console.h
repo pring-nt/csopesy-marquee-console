@@ -38,9 +38,9 @@ public:
      * @param in Stream commands are read from; defaults to @c std::cin.
      * @param out Stream replies are written to; defaults to @c std::cout.
      */
-    Console(const Font& font,
-            std::istream& in = std::cin,
-            std::ostream& out = std::cout);
+    explicit Console(Font font,
+                     std::istream& in = std::cin,
+                     std::ostream& out = std::cout);
 
     /**
      * @brief Prints the header and runs the command loop until exit or EOF.
@@ -50,10 +50,10 @@ public:
 
 private:
     /// Prints the title art and the group metadata block.
-    void printHeader();
+    void printHeader() const;
 
     /// Prints the command table shown by @c help.
-    void printHelp();
+    void printHelp() const;
 
     /// Handles @c set_text: validates, stores, confirms, and previews.
     void handleSetText(const std::string& args);
@@ -62,7 +62,7 @@ private:
     void handleSetSpeed(const std::string& args);
 
     /// Prints the ASCII-art preview of @p text.
-    void printPreview(const std::string& text);
+    void printPreview(const std::string& text) const;
 
     Font font_;            ///< Font used for all art output.
     Marquee marquee_;      ///< Marquee state mutated by the commands.

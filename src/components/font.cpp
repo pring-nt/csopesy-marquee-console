@@ -68,7 +68,7 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
     }
 
     if (order.empty() || artLines.empty()) {
-        return Font();
+        return {};
     }
 
     const std::vector<std::string>::size_type height = artLines.size() / order.size();
@@ -76,7 +76,7 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
         std::cerr << "Warning: " << fontPath
                   << " does not contain one glyph per character listed in "
                   << orderPath << ".\n";
-        return Font();
+        return {};
     }
     if (artLines.size() % order.size() != 0) {
         std::cerr << "Warning: " << fontPath << " has " << artLines.size()
@@ -117,7 +117,7 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
 }
 
 const Glyph& lookupGlyph(const Font& font, char ch) {
-    const FontMap::const_iterator it = font.glyphs.find(ch);
+    const auto it = font.glyphs.find(ch);
     if (it != font.glyphs.end() && !it->second.empty()) {
         return it->second;
     }

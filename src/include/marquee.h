@@ -37,7 +37,7 @@ public:
      * @param text Initial marquee text.
      * @param speedMs Initial refresh interval in milliseconds.
      */
-    Marquee(const std::string& text, int speedMs);
+    Marquee(std::string text, int speedMs);
 
     /// @return The text that will scroll when the marquee runs.
     const std::string& text() const;

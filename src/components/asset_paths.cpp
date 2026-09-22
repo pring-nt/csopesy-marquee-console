@@ -35,7 +35,10 @@ bool fileExists(const std::string& path) {
 namespace marquee {
 
 std::string resolveAssetPath(const std::string& fileName) {
-    if (const std::string nested = kAssetDir + "/" + fileName; fileExists(nested)) {
+    // Deliberately not const: a const local cannot be implicitly moved on
+    // return, which would force a copy here.
+    std::string nested = std::string(kAssetDir) + "/" + fileName;
+    if (fileExists(nested)) {
         return nested;
     }
     return fileName;

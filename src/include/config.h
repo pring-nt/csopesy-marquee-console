@@ -15,37 +15,41 @@
  * asset names, the default marquee text and speed, the welcome-header
  * metadata, and the glyph layout constants. Every module can include this
  * header without pulling in any implementation.
+ *
+ * All values are constant-initialized @c constexpr objects. The string values
+ * are plain @c char arrays rather than @c std::string / @c std::vector on
+ * purpose: a namespace-scope @c std::string needs dynamic initialization
+ * before @c main, and a throw there (e.g. @c std::bad_alloc) terminates the
+ * program before any handler can catch it. Character arrays are initialized
+ * at compile time and cost nothing at startup.
  */
 
 #ifndef CSOPESY_MARQUEE_CONFIG_H
 #define CSOPESY_MARQUEE_CONFIG_H
 
-#include <string>
-#include <vector>
-
 namespace marquee {
 
 /// Directory that holds the font assets, relative to the working directory.
-const std::string kAssetDir = "assets";
+constexpr char kAssetDir[] = "assets";
 
 /// Name of the file holding the raw glyph blocks, top to bottom.
-const std::string kFontFile = "ascii_art.txt";
+constexpr char kFontFile[] = "ascii_art.txt";
 
 /// Name of the file listing the glyph characters, one per line.
-const std::string kOrderFile = "characters.txt";
+constexpr char kOrderFile[] = "characters.txt";
 
 /// Text shown in the header and used until @c Marquee::setText replaces it.
-const std::string kDefaultMarqueeText = "CSOPESY";
+constexpr char kDefaultMarqueeText[] = "CSOPESY";
 
 /// Refresh interval, in milliseconds, used until @c Marquee::setSpeed
 /// replaces it.
 constexpr int kDefaultMarqueeSpeed = 200;
 
 /// Date printed in the welcome header.
-const std::string kVersionDate = "2026-09-18";
+constexpr char kVersionDate[] = "2026-09-18";
 
 /// Developer names printed in the welcome header.
-const std::vector<std::string> kDevelopers = {
+constexpr const char* kDevelopers[] = {
     "Trinidad, Nathan",
     "Singh, Nathaniel",
     "Quilantang, Jann Miro",
