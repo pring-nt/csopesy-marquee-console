@@ -22,7 +22,10 @@ Prerequisites:
 2. Build (pick one):
 
    ```bat
-   g++ -std=c++17 main.cpp -o csopesy.exe
+   g++ -std=c++17 -Isrc/include src/main.cpp src/components/console.cpp ^
+       src/components/marquee.cpp src/components/font.cpp ^
+       src/components/ascii_art.cpp src/components/asset_paths.cpp ^
+       src/components/text_utils.cpp -o csopesy.exe
    ```
 
    or with CMake:
@@ -32,9 +35,9 @@ Prerequisites:
    cmake --build build
    ```
 
-3. Run from the repository root so the program finds its font files
-   (`ascii_art.txt` and `characters.txt` are opened from the working
-   directory):
+3. Run from the repository root, or from a build directory after CMake has
+   copied the fonts next to the executable. The program looks for each font
+   file in `assets/` first, then in the working directory:
 
    ```bat
    csopesy.exe
@@ -100,10 +103,21 @@ We follow Conventional Commits: `type(scope): short summary`.
 
 ## Code style
 
+> Before writing code, read [AGENTS.md](AGENTS.md). It holds the hard rules:
+> the GCC 6.3 compatibility limits (no if-init statements, no `[[nodiscard]]`),
+> the zero-warning policy, and the module conventions.
+
 * C++17, standard library only (`std::cin` / `std::cout`, no
   `printf` / third-party libs).
-* Keep the flat layout: sources and data assets stay side by side in
-  the repo root; never load files from `src/` or `assets/`.
+* Keep the module layout: headers live in `src/include/`, implementations
+  in `src/components/`, and the entry point is `src/main.cpp`. Add a new
+  concern as a `src/include/<name>.h` + `src/components/<name>.cpp` pair
+  and register the `.cpp` in `CMakeLists.txt`; do not re-grow `main.cpp`.
+* Include module headers by bare name (`#include "font.h"`); the build
+  adds `src/include` to the search path, so do not write relative paths
+  like `#include "../include/font.h"`.
+* Open font data only through `resolveAssetPath` (it checks `assets/`
+  first, then the working directory); never hardcode a nested path.
 * Console output must stay plain ASCII (no Unicode escapes or
   non-ASCII literals) so it renders correctly in `cmd`.
 * Document behavior with Doxygen-style comments and keep

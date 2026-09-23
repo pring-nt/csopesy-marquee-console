@@ -11,6 +11,8 @@ CSOPESY is a console-based command-line interface (CLI) written in C++. This doc
 
 The program must compile and run as a single executable with no external runtime dependencies beyond the C++ Standard Library.
 
+The Phase 1 sources are organised as small modules - headers in `src/include/` with their implementations in `src/components/` (console shell, marquee state, ASCII-art renderer, font loader, text helpers, asset resolver, and compile-time config) - so the future animation engine can be added without growing a single translation unit.
+
 ---
 
 ## 2. Program Entry & Welcome Header
@@ -147,8 +149,8 @@ Then the program exits with code 0.
 | **Language** | C++17 or later |
 | **I/O** | `std::cin`, `std::cout` only (no `printf`/`scanf`) |
 | **Input parsing** | `std::string`, `std::getline`, `std::istringstream` |
-| **Directory Structure** | All source files (e.g., `main.cpp`) and data assets (`ascii_art.txt`, `characters.txt`) **must reside in the same flat root directory**. Executables and code must access files directly without checking subdirectories or relative paths like `src/` or `assets/`. |
-| **ASCII art font** | Loaded directly from `ascii_art.txt` (glyph blocks) and `characters.txt` (glyph order) in the working directory at startup - no `figlet`, `ncurses`, or third-party libs permitted. |
+| **Directory Structure** | Application sources live under `src/`: module headers in `src/include/`, implementations in `src/components/`, entry point in `src/main.cpp`. Data assets live under `assets/`. The program resolves each asset by trying `assets/<name>` first, then `<name>` in the working directory; no other subdirectory is searched. |
+| **ASCII art font** | Loaded at startup from `assets/ascii_art.txt` (glyph blocks) and `assets/characters.txt` (glyph order), falling back to the working directory - no `figlet`, `ncurses`, or third-party libs permitted. |
 | **External libraries**| None permitted |
 | **Platform** | Must compile on `g++` (Linux) and MinGW `g++` (Windows) with `-std=c++17` |
 | **Character output** | Plain ASCII only (no Unicode escapes or non-ASCII literals) so output renders correctly in `cmd` |
@@ -167,7 +169,7 @@ The following state must be maintained across commands during a session:
 ---
 
 ## 7. ASCII Art Font Specification
-ASCII art glyphs are loaded from two external raw text files located in the **same directory** as `main.cpp`:
+ASCII art glyphs are loaded from two external raw text files that ship in the **`assets/` directory** (CMake also copies them next to the built executable):
 
 * `characters.txt` - the glyph order, one character per line.
 * `ascii_art.txt` - the raw glyph blocks, stacked vertically in the same order as `characters.txt`.
@@ -198,9 +200,9 @@ The order is data, not code: the program must read it from `characters.txt` rath
 
 The glyph height and width are not hardcoded: the height is the number of lines in `ascii_art.txt` divided by the number of entries in `characters.txt`, and the width is the longest ink row found (trailing spaces ignored).
 
-### 7.3 Working Directory & File Access Rule
-* The program **must open `ascii_art.txt` and `characters.txt` directly** from the current working directory (`"ascii_art.txt"`, `"characters.txt"`).
-* **Do not** look inside nested folders (e.g., `assets/ascii_art.txt` or `src/ascii_art.txt`). All source code files (`main.cpp`, headers) and both data files must remain side-by-side in the same directory.
+### 7.3 Asset Location & File Access Rule
+* The program **must open `ascii_art.txt` and `characters.txt` by name**, resolved by trying `assets/<name>` first and then `<name>` in the current working directory (`"assets/ascii_art.txt"`, then `"ascii_art.txt"`).
+* **Do not** search any other directory (e.g., `src/components/ascii_art.txt`). Sources live in `src/include/` and `src/components/`, the two data files live in `assets/`, and CMake copies both data files next to the executable.
 
 ### 7.4 In-Memory Representation
 ```cpp
