@@ -1,3 +1,0 @@
-"C:\Program Files\JetBrains\CLion 2026.2.2\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\csopesy_marquee_console.dir/objects.a
-C:\PROGRA~1\JETBRA~1\CLION2~1.2\bin\mingw\bin\ar.exe qc CMakeFiles\csopesy_marquee_console.dir/objects.a @CMakeFiles\csopesy_marquee_console.dir\objects1.rsp
-C:\PROGRA~1\JETBRA~1\CLION2~1.2\bin\mingw\bin\C__~1.EXE -g -Wl,--whole-archive CMakeFiles\csopesy_marquee_console.dir/objects.a -Wl,--no-whole-archive -o csopesy_marquee_console.exe -Wl,--out-implib,libcsopesy_marquee_console.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\csopesy_marquee_console.dir\linkLibs.rsp
