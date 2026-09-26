@@ -65,6 +65,12 @@ constexpr int kGlyphGap = 1;
 /// Width of the blank block used for spaces and unknown characters.
 constexpr int kBlankWidth = 4;
 
+/// Screen row (1-based) the scrolling band is drawn in. The welcome title is
+/// printed on the first rows of the screen, so the marquee redraws exactly
+/// that block: the text that is already on screen moves, and nothing is
+/// printed further down.
+constexpr int kMarqueeBandRow = 1;
+
 }  // namespace marquee
 
 #endif  // CSOPESY_MARQUEE_CONFIG_H

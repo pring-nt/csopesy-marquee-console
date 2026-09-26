@@ -30,45 +30,21 @@
 
 namespace marquee {
 
-int getDisplayWidth() {
-    constexpr int kFallback = 80;
-    if (const char* columns = std::getenv("COLUMNS")) {
-        std::istringstream stream(columns);
-        long long value = 0;
-        stream >> value;
-        if (!stream.fail()) {
-            // Consume any trailing whitespace, then require end of input.
-            // Test eof() only: newer libstdc++ makes std::ws set failbit once
-            // it reaches EOF, so also requiring !fail() would reject every
-            // valid value and silently ignore the COLUMNS setting.
-            stream >> std::ws;
-            if (stream.eof() && value >= 20 && value <= 1000) {
-                return static_cast<int>(value);
-            }
-        }
-    }
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info)) {
-        const int width = info.srWindow.Right - info.srWindow.Left + 1;
-        if (width >= 20 && width <= 1000) {
-            return width;
-        }
-    }
-#else
-    struct winsize size;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &size) == 0 && size.ws_col > 0) {
-        return static_cast<int>(size.ws_col);
-    }
-#endif
-    return kFallback;
-}
+namespace {
 
-std::vector<std::string> renderAsciiArt(const std::string& text,
-                                        const Font& font,
-                                        int maxWidth) {
+/**
+ * @brief Joins the glyphs of @p text into one row per font row.
+ *
+ * The rows are returned uncut and untrimmed: the preview trims them itself,
+ * and the animation needs the full band so it can take a window out of it.
+ *
+ * @param text Text to compose; it is uppercased first.
+ * @param font Font used for the glyphs.
+ * @return One entry per font row, or an empty vector for an unusable font.
+ */
+std::vector<std::string> composeBand(const std::string& text, const Font& font) {
     std::vector<std::string> rows;
-    if (!font.valid()) {
+    if (!font.valid() || text.empty()) {
         return rows;
     }
     const std::string upper = toUpper(text);
@@ -80,20 +56,82 @@ std::vector<std::string> renderAsciiArt(const std::string& text,
             composite += lookupGlyph(font, ch)[row];
             composite += gap;
         }
-        if (maxWidth >= 0 && static_cast<int>(composite.size()) > maxWidth) {
-            composite.resize(static_cast<std::string::size_type>(maxWidth));
-        }
-        rows.push_back(rightTrim(composite));
+        rows.push_back(composite);
     }
     return rows;
 }
 
-void printAsciiArt(const std::string& text, const Font& font, std::ostream& out) {
-    const std::vector<std::string> rows =
-        renderAsciiArt(text, font, getDisplayWidth());
-    for (const std::string& row : rows) {
-        out << row << '\n';
+/**
+ * @brief Returns the width of @p text rendered as one uncut band.
+ * @param text Text to render.
+ * @param font Font used for the glyphs.
+ * @return Band width in columns, or zero when the text or the font is empty.
+ */
+int measureBandWidth(const std::string& text, const Font& font) {
+    const std::vector<std::string> rows = composeBand(text, font);
+    if (rows.empty()) {
+        return 0;
     }
+    return static_cast<int>(rows[0].size());
+}
+
+}  // namespace
+
+std::vector<std::string> renderAsciiArt(const std::string& text,
+                                        const Font& font,
+                                        int maxWidth) {
+    std::vector<std::string> rows = composeBand(text, font);
+    for (std::string& row : rows) {
+        if (maxWidth >= 0 && static_cast<int>(row.size()) > maxWidth) {
+            row.resize(static_cast<std::string::size_type>(maxWidth));
+        }
+        row = rightTrim(row);
+    }
+    return rows;
+}
+
+int measureBandPeriod(const std::string& text, const Font& font, int width) {
+    const int bandWidth = measureBandWidth(text, font);
+    if (bandWidth <= 0) {
+        return 0;
+    }
+    // The band repeats every period columns, and the period decides whether
+    // the text can be seen twice at once.
+    //
+    // Longer than the console: the period is the text itself, so the tail is
+    // followed immediately by the head and the text reads as one continuous
+    // stream. Shorter than the console: the period is the text plus a whole
+    // console width, so the copy leaving on the right is gone before the copy
+    // entering on the left shows up - never both, and never side by side.
+    return bandWidth >= width ? bandWidth : bandWidth + width;
+}
+
+std::vector<std::string> renderScrollingFrame(const std::string& text,
+                                               const Font& font,
+                                               int width,
+                                               int start) {
+    const std::vector<std::string> cell = composeBand(text, font);
+    std::vector<std::string> frame;
+    const int period = measureBandPeriod(text, font, width);
+    if (cell.empty() || width <= 0 || period <= 0) {
+        return frame;
+    }
+    // The band is the padded cell twice over, so a window that starts anywhere
+    // in the first period always has a full width to show.
+    int wrapped = start % period;
+    if (wrapped < 0) {
+        wrapped += period;
+    }
+    const std::string::size_type from = static_cast<std::string::size_type>(wrapped);
+    const std::string::size_type window = static_cast<std::string::size_type>(width);
+    frame.reserve(cell.size());
+    for (const std::string& row : cell) {
+        std::string band = row;
+        band.resize(static_cast<std::string::size_type>(period), ' ');
+        band += band;
+        frame.push_back(rightTrim(band.substr(from, window)));
+    }
+    return frame;
 }
 
 }  // namespace marquee

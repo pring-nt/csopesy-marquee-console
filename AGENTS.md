@@ -17,24 +17,29 @@ Companion documents:
 ## 1. What this project is
 
 CSOPESY Phase 1: an interactive console that renders marquee text as ASCII art
-from an external font. The scrolling animation is a future phase;
-`start_marquee` / `stop_marquee` currently only record state. `os_emulator.cpp`
-is a separate plain-text variant of the same shell.
+from an external font, and scrolls it. `start_marquee` runs the animation on
+its own thread, redrawing the welcome title rows at the top of the screen, so
+the command loop stays usable while the band scrolls; `stop_marquee` ends it.
+`os_emulator.cpp` is a separate plain-text variant of the same shell.
 
 * **Language:** compiled as C++17, but only the subset GCC 6.3 supports - see
   section 4.
 * **Dependencies:** C++ Standard Library only. No third-party libraries, ever.
-* **Output:** plain ASCII only, so it renders correctly in `cmd`.
+  The animation needs `<thread>` and `<mutex>`, so the build passes `-pthread`
+  (a no-op on MinGW, required on Linux/macOS).
+* **Output:** plain ASCII only, so it renders correctly in `cmd`. The animation
+  also emits ASCII escape sequences (cursor address, erase line, save and
+  restore cursor); that is what redraws the band in place.
 
 ## 2. Build, run, test
 
 ```bat
 :: direct build (from the repository root)
-g++ -std=c++17 -Wall -Wextra -Wpedantic -Isrc/include ^
+g++ -std=c++17 -pthread -Wall -Wextra -Wpedantic -Isrc/include ^
     src/main.cpp src/components/console.cpp src/components/marquee.cpp ^
     src/components/font.cpp src/components/ascii_art.cpp ^
-    src/components/asset_paths.cpp src/components/text_utils.cpp ^
-    -o csopesy.exe
+    src/components/asset_paths.cpp src/components/terminal.cpp ^
+    src/components/text_utils.cpp -o csopesy.exe
 
 :: CMake
 cmake -S . -B build

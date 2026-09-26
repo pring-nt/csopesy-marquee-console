@@ -109,6 +109,38 @@ so findings are not discovered one at a time. After the `nested` fix there are
 
 ---
 
+## Scrolling marquee animation (thread + terminal module)
+
+The animation added `src/include/terminal.h` + `src/components/terminal.cpp`,
+a `std::thread` in `Marquee`, and a `std::mutex` in both. New findings and the
+decisions taken:
+
+| Warning | Location | Decision |
+| --- | --- | --- |
+| Non-explicit converting constructor | `terminal.h` (`SyncBuf`) | **Adopted** - a `SyncBuf` is meaningless without the stream buffer it wraps, so the constructor taking `std::streambuf*` is `explicit`. |
+| Class has pointer data members but does not override copy | `terminal.h` (`SyncBuf`) | **Adopted** - copying a locking buffer would be meaningless, so the copy constructor and assignment are `= delete` (C++11, fine on GCC 6.3). The same applies to `Marquee` (mutex, thread, references) and to `Console`, which now owns the buffer. |
+| Include what you use | `marquee.h` (`<mutex>`, `<thread>`, `<iosfwd>`) | **Adopted** - each unit includes what it uses directly. `<iosfwd>` keeps the header light; the destructor still needs the complete `std::ostream` type, so `terminal.h` includes `<ostream>`. |
+| Mutex should be `mutable` | `marquee.h` (`stateMutex_`) | **Adopted** - `isRunning()` and `waitForNextFrame()` are `const` helpers called from the worker, so the lock is `mutable`. |
+| Use `std::scoped_lock` / `lock_guard` vs. manual lock/unlock | `marquee.cpp` | **Adopted** - `std::lock_guard` is used in single-scope critical sections; the two cases that need to leave the critical section (`start`, `stop`) scope the lock in a block and join outside it, so the console is never blocked while the thread is joined. |
+| Repaint the screen instead of appending output | `console.cpp` | **Adopted** - every command fills `screen_` and the console repaints the area below the band. The alternative (letting output accumulate) is what made the layout drift and what the band used to fight with; the trade-off is no scrollback, which is documented in `SPECIFICATIONS.md` Section 9.2. |
+| Keep the band rows out of the console's writes | `console.cpp`, `terminal.cpp` | **Adopted** - `clearBelowBand()` starts one row under the band, so the console can never erase a frame, and `paintBand()` skips the band entirely while the animation thread owns it. |
+| Spin-wait / busy loop | `marquee.cpp` (`waitForNextFrame`) | **Adopted with a note** - the wait is cut into 20 ms sleeps instead of one long sleep, so `stop_marquee` returns within one frame even after `set_speed 5000`. The cost is one wake-up every 20 ms per running marquee, which is negligible. |
+| Use `std::this_thread::sleep_for` instead of `usleep`/`Sleep` | `terminal.cpp` | **Not adopted** - `<thread>` would be pulled into the wait path and the project keeps its platform code in one place; `Sleep`/`usleep` is the same wait without the extra header, and it is what `usleep` already did. |
+| Prefer atomic flag over mutex for `running_` | `marquee.cpp` | **Not adopted** - `running_` sits next to `text_` and `speedMs_`, which need a real lock anyway. One mutex for three fields is simpler than a mutex plus an atomic. |
+| `drawBand` should be a member | `terminal.cpp` | **Not adopted** - the module already exposes free functions (`getDisplayWidth`, `printAsciiArt`); keeping the style consistent matters more here. |
+| Restore the stream buffer in the destructor | `console.cpp` | **Adopted** - `std::cout` is flushed again during static destruction after `main` returns, so the original buffer is put back; otherwise that flush would talk to a destroyed `SyncBuf`. |
+| Address the band with `ESC[1;1H` everywhere | `terminal.cpp` | **Not adopted** - the Windows console host counts rows from the top of the *scrollback*, so the band is addressed at `srWindow.Top`/`srWindow.Left` there. Addressing the buffer top pulled the viewport back to the oldest output on every frame. |
+| Frames should use the `COLUMNS`-aware width | `terminal.cpp`, `marquee.cpp` | **Not adopted** - the rows are drawn at absolute coordinates, and a row wider than the window scrolls the Windows console window sideways, after which every later frame is drawn at a shifted position: the band drifted sideways and console text survived to its left. The frames use `liveConsoleWidth()` and every row is cut to the columns that fit. `getDisplayWidth()` and `printAsciiArt()` went with the `set_text` preview; `terminal.cpp` is now the only file with platform code. |
+
+**Toolchain note:** the animation needs `-pthread` on Linux/macOS
+(`Threads::Threads` in CMake, documented in the build commands of `README.md`,
+`CONTRIBUTING.md`, and `AGENTS.md`). On MinGW the flag is accepted and
+`std::thread`/`std::mutex` come from winpthreads. Nothing in the new code uses
+C++17 library features or attributes, so the GCC 6.3 rules in this file still
+hold.
+
+---
+
 ## Verification
 
 * Clean build, zero warnings: GCC 6.3.0 and GCC 15.2.0, `-Wall -Wextra

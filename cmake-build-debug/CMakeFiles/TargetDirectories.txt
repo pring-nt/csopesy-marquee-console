@@ -1,0 +1,3 @@
+C:/Users/natha/OneDrive/Desktop/SY/csopesy/m03/csopesy-marquee-console-master/cmake-build-debug/CMakeFiles/csopesy_marquee_console.dir
+C:/Users/natha/OneDrive/Desktop/SY/csopesy/m03/csopesy-marquee-console-master/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/natha/OneDrive/Desktop/SY/csopesy/m03/csopesy-marquee-console-master/cmake-build-debug/CMakeFiles/rebuild_cache.dir
