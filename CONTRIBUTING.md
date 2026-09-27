@@ -22,10 +22,10 @@ Prerequisites:
 2. Build (pick one):
 
    ```bat
-   g++ -std=c++17 -Isrc/include src/main.cpp src/components/console.cpp ^
+   g++ -std=c++17 -pthread -Isrc/include src/main.cpp src/components/console.cpp ^
        src/components/marquee.cpp src/components/font.cpp ^
        src/components/ascii_art.cpp src/components/asset_paths.cpp ^
-       src/components/text_utils.cpp -o csopesy.exe
+       src/components/terminal.cpp src/components/text_utils.cpp -o csopesy.exe
    ```
 
    or with CMake:
@@ -54,12 +54,45 @@ Prerequisites:
    Command> exit
    ```
 
-   To simulate a narrow console (e.g. to check art truncation), set the
-   `COLUMNS` environment variable before running:
+   The band is cut to the live window width, so to check the art truncation
+   just resize the window while it runs - no environment variable is involved.
+
+## Running in CLion
+
+Open the repository root in CLion; it picks up `CMakeLists.txt` on its own. The
+bundled toolchain (CMake 4.3, Ninja, MinGW) builds it as is.
+
+One catch, and it is not a bug: **the Run window is not a terminal.** CLion
+captures the program's output through a pipe, so the program sees a redirected
+stdout, and the marquee is (deliberately) refused with
+`Marquee not started. The animation needs an interactive terminal.` All the
+other commands work there, and the run console renders the ASCII art fine.
+
+To watch the animation, run the binary in CLion's **terminal** instead:
+
+1. Build first (the hammer icon, or `Build > Build Project`).
+2. `View > Tool Windows > Terminal` (the Terminal tab at the bottom).
+3. In that terminal, from the project root, build and run:
 
    ```bat
-   set COLUMNS=60 && csopesy.exe
+   cmake -S . -B build
+   cmake --build build
    ```
+
+   then start it, spelled the way your shell wants it:
+
+   | Shell | Command |
+   | --- | --- |
+   | cmd | `build\csopesy_marquee_console.exe` |
+   | PowerShell | `.\build\csopesy_marquee_console.exe` |
+   | bash (Git Bash, mintty) | `./build/csopesy_marquee_console.exe` |
+
+   If CLion already built the project, skip the `cmake` commands and run
+   `cmake-build-debug\csopesy_marquee_console.exe` instead - the font assets
+   are found from the project root and from the build directory alike.
+
+The terminal tab gives the program a real console, so the band scrolls and
+ANSI escape sequences are interpreted properly.
 
 ## Branching conventions
 
@@ -126,10 +159,11 @@ We follow Conventional Commits: `type(scope): short summary`.
 ## Pull request process
 
 1. Open a PR against `main` with a brief description and testing notes.
-2. Confirm: clean `g++ -std=c++17` build with no warnings, plus a smoke
-   session covering `help`, `set_text` (short and long text),
-   `set_speed` (valid and invalid), `start_marquee`, `stop_marquee`,
-   an unknown command, and `exit`.
+2. Confirm: clean `g++ -std=c++17 -pthread` build with no warnings, plus a
+   smoke session covering `help`, `set_text` (short, long, and with no
+   argument), `set_speed` (valid and invalid), `start_marquee`,
+   `stop_marquee`, an unknown command, and `exit` - in a real terminal window,
+   since the animation is skipped when the output is redirected.
 3. Update `SPECIFICATIONS.md` and/or `README.md` if behavior changed.
 4. Request one review; address feedback before merging.
 

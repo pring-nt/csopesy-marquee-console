@@ -13,14 +13,16 @@
  *
  * Loads the ASCII-art font, then hands control to @ref marquee::Console, which
  * prints the welcome header and runs the command loop that keeps the marquee
- * text, refresh speed, and running flag in memory. The scrolling animation
- * itself is not drawn yet; @c start_marquee and @c stop_marquee only record
- * the requested state through @ref marquee::Marquee.
+ * text, refresh speed, and running flag in memory. @c start_marquee hands the
+ * scrolling over to @ref marquee::Marquee, which redraws the title art on its
+ * own thread until @c stop_marquee stops it - the command loop keeps running
+ * meanwhile, so the user can keep typing.
  *
  * Build (single command, from the repository root):
- *     g++ -std=c++17 -Isrc/include src/main.cpp src/components/console.cpp
- *         src/components/marquee.cpp src/components/font.cpp
- *         src/components/ascii_art.cpp src/components/asset_paths.cpp
+ *     g++ -std=c++17 -pthread -Isrc/include src/main.cpp
+ *         src/components/console.cpp src/components/marquee.cpp
+ *         src/components/font.cpp src/components/ascii_art.cpp
+ *         src/components/asset_paths.cpp src/components/terminal.cpp
  *         src/components/text_utils.cpp -o csopesy.exe
  *
  * Build (CMake):

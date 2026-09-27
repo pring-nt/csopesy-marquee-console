@@ -11,37 +11,25 @@
  *     Quilantang, Jann Miro
  *     Saguin, VL Kirsten Camille
  *
- * The renderer is intentionally split from the printing: @ref
- * marquee::renderAsciiArt returns the finished rows as data, which is the
- * seam the future scrolling marquee needs (it will window and shift those
- * rows over time), while @ref marquee::printAsciiArt is the one-shot
- * convenience used by the console preview and the welcome header.
+ * The renderer returns finished rows as data and nothing else: the console
+ * draws them into the band, the animation shifts them one column per frame.
+ *
+ * Two renderings of the same text exist on purpose.
+ * @ref marquee::renderAsciiArt cuts the rows at the console width and stops -
+ * that is the whole text, for the band when the marquee is stopped.
+ * @ref marquee::renderScrollingFrame returns a moving window over the uncut
+ * band, which is what the animation scrolls.
  */
 
 #ifndef CSOPESY_MARQUEE_ASCII_ART_H
 #define CSOPESY_MARQUEE_ASCII_ART_H
 
-#include <iosfwd>
 #include <string>
 #include <vector>
 
 #include "font.h"
 
 namespace marquee {
-
-/**
- * @brief Returns the visible console width in columns.
- *
- * Long ASCII-art rows wider than the console would be hard-wrapped by the
- * terminal mid-row, spilling glyph fragments onto the next visual line and
- * corrupting the block alignment. The width is used to cut off overflowing
- * art rows (the scrolling marquee reveals the hidden tail). The @c COLUMNS
- * environment variable wins when valid (useful for tests/redirection), then
- * the live console size is queried, otherwise 80 columns is assumed.
- *
- * @return Console width in columns, always positive.
- */
-int getDisplayWidth();
 
 /**
  * @brief Renders @p text as one composite row per glyph row.
@@ -55,7 +43,9 @@ int getDisplayWidth();
  *
  * @param text Text to render.
  * @param font Font used for the glyphs.
- * @param maxWidth Maximum width of a returned row, in columns.
+ * @param maxWidth Maximum width of a returned row, in columns; the caller
+ *                 passes the live console width. A negative value means "no
+ *                 cut", which is what the scrolling frames ask for.
  * @return One entry per font row, or an empty vector for an unusable font.
  */
 std::vector<std::string> renderAsciiArt(const std::string& text,
@@ -63,12 +53,42 @@ std::vector<std::string> renderAsciiArt(const std::string& text,
                                         int maxWidth);
 
 /**
- * @brief Renders @p text and writes the rows to @p out.
- * @param text Text to render.
+ * @brief Returns the distance, in columns, after which the band repeats.
+ *
+ * The period is what keeps the text from appearing twice at the same time. A
+ * text longer than the console repeats after its own width, so the head
+ * follows the tail seamlessly. A text shorter than the console repeats after
+ * its own width plus a full console, so the copy leaving on the right is gone
+ * before the copy entering on the left arrives.
+ *
+ * @param text Text that scrolls.
  * @param font Font used for the glyphs.
- * @param out Stream that receives one line per font row.
+ * @param width Console width in columns.
+ * @return Repeat distance in columns, or zero for an unusable text or font.
  */
-void printAsciiArt(const std::string& text, const Font& font, std::ostream& out);
+int measureBandPeriod(const std::string& text, const Font& font, int width);
+
+/**
+ * @brief Renders one frame of the scrolling band.
+ *
+ * The band is the rendered text padded to @c measureBandPeriod and repeated
+ * twice, so a window that starts anywhere inside the first period is always
+ * full and the repeat is seamless. The window is @p width columns wide and
+ * starts @p start columns into the band; @p start is wrapped into one period,
+ * and because the band repeats, the wrap is invisible. That is also how the
+ * text travels to the right: the window walks backwards through the band, so
+ * each character appears one column further right every frame.
+ *
+ * @param text Text that scrolls.
+ * @param font Font used for the glyphs.
+ * @param width Width of the window in columns; values below one give no rows.
+ * @param start Column the window starts at; negatives are wrapped, not clamped.
+ * @return One entry per font row, or an empty vector for an unusable font.
+ */
+std::vector<std::string> renderScrollingFrame(const std::string& text,
+                                               const Font& font,
+                                               int width,
+                                               int start);
 
 }  // namespace marquee
 
