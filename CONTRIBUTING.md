@@ -4,7 +4,11 @@
 
 Prerequisites:
 
-* A C++17 compiler: `g++` (Linux) or MinGW `g++` (Windows).
+* A C++17 compiler with the **posix** thread model: MSYS2 `ucrt64` GCC 14.2 or
+  newer, or the GCC 15.2 that ships with CLion. On Linux/macOS any `g++` 14 or
+  newer works, with `-pthread`. MinGW.org GCC 6.3.0 (`C:\MinGW`) does **not**
+  work - it is a win32 thread-model build with no `std::thread` / `std::mutex`,
+  so it cannot compile the animation. See [AGENTS.md](AGENTS.md) section 4.
 * Optional: CMake 3.x and your IDE's toolchain (the repo ships a
   `CMakeLists.txt` for CLion / IDE builds).
 * No external libraries are permitted; the program uses only the C++
@@ -60,7 +64,7 @@ Prerequisites:
 ## Running in CLion
 
 Open the repository root in CLion; it picks up `CMakeLists.txt` on its own. The
-bundled toolchain (CMake 4.3, Ninja, MinGW) builds it as is.
+bundled toolchain (CMake 4.3, Ninja, GCC 15.2 mingw-w64) builds it as is.
 
 One catch, and it is not a bug: **the Run window is not a terminal.** CLion
 captures the program's output through a pipe, so the program sees a redirected
@@ -137,8 +141,8 @@ We follow Conventional Commits: `type(scope): short summary`.
 ## Code style
 
 > Before writing code, read [AGENTS.md](AGENTS.md). It holds the hard rules:
-> the GCC 6.3 compatibility limits (no if-init statements, no `[[nodiscard]]`),
-> the zero-warning policy, and the module conventions.
+> the supported toolchains (`AGENTS.md` section 4), the zero-warning policy,
+> and the module conventions.
 
 * C++17, standard library only (`std::cin` / `std::cout`, no
   `printf` / third-party libs).
@@ -159,7 +163,8 @@ We follow Conventional Commits: `type(scope): short summary`.
 ## Pull request process
 
 1. Open a PR against `main` with a brief description and testing notes.
-2. Confirm: clean `g++ -std=c++17 -pthread` build with no warnings, plus a
+2. Confirm: clean `g++ -std=c++17 -pthread` build with no warnings on both
+   toolchains in `AGENTS.md` section 4, plus a
    smoke session covering `help`, `set_text` (short, long, and with no
    argument), `set_speed` (valid and invalid), `start_marquee`,
    `stop_marquee`, an unknown command, and `exit` - in a real terminal window,

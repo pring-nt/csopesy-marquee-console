@@ -22,11 +22,12 @@ its own thread, redrawing the welcome title rows at the top of the screen, so
 the command loop stays usable while the band scrolls; `stop_marquee` ends it.
 `os_emulator.cpp` is a separate plain-text variant of the same shell.
 
-* **Language:** compiled as C++17, but only the subset GCC 6.3 supports - see
-  section 4.
+* **Language:** C++17, built with the mingw-w64 toolchains in section 4. The
+  code stays in a conservative subset by choice, not because the compiler
+  requires it.
 * **Dependencies:** C++ Standard Library only. No third-party libraries, ever.
   The animation needs `<thread>` and `<mutex>`, so the build passes `-pthread`
-  (a no-op on MinGW, required on Linux/macOS).
+  (required on Linux/macOS, accepted and ignored by MinGW).
 * **Output:** plain ASCII only, so it renders correctly in `cmd`. The animation
   also emits ASCII escape sequences (cursor address, erase line, save and
   restore cursor); that is what redraws the band in place.
@@ -53,6 +54,14 @@ Run from the repository root or from the build directory. The font files are
 resolved from `assets/<name>` first, then `<name>` in the working directory, so
 both launch locations work.
 
+`g++` on `PATH` must be one of the toolchains in section 4. On this machine the
+bare `g++` resolves to MinGW.org GCC 6.3.0 (`C:\MinGW\bin\g++`), which cannot
+build the threaded files - use the supported compiler by full path
+(`C:\msys64\ucrt64\bin\g++.exe`), and keep `C:\msys64\ucrt64\bin` on `PATH` so
+that compiler's own runtime DLLs resolve for `cc1plus` and the built binary. The
+CMake build avoids the question: the CLion toolchain is the GCC 15.2 in
+section 4.
+
 ## 3. Layout and module rules
 
 ```text
@@ -75,31 +84,31 @@ os_emulator.cpp           separate plain-text variant
 
 Every change must build warning-free with **both**:
 
-* **MinGW.org GCC 6.3.0** (`-std=c++17`) - the low bar. This is the compiler
-  behind the documented `g++` build command.
-* **GCC 15.x** (the CLion bundle).
+* **GCC 14.2.0, MSYS2 `ucrt64`** (`C:\msys64\ucrt64\bin\g++.exe`) - the low
+  bar.
+* **GCC 15.2.0**, the mingw-w64 bundle that ships with CLion
+  (`...\CLion 2026.2.2\bin\mingw\bin\g++`).
 
-GCC 6.3 advertises C++17 but lacks much of it. All of the following were
-verified to fail or warn on GCC 6.3 in this repository:
+Both are **mingw-w64** builds with the **posix** thread model, which is what
+makes `std::thread` and `std::mutex` available at all. Any `g++` 14 or newer
+with that thread model behaves the same way; on Linux/macOS `-pthread` is
+required, and the CMake build asks for it through `Threads::Threads`.
 
-| Do not use | GCC 6.3 result |
-| --- | --- |
-| `if (T x = init; cond)` (if-init statement) | **error** |
-| `if constexpr` | **error** |
-| structured bindings, `auto [a, b] = ...` | **error** |
-| inline variables, `inline int x = 1;` | **error** |
-| `[[nodiscard]]`, `[[maybe_unused]]`, `[[fallthrough]]` | **warning** `-Wattributes` |
-| `<string_view>`, `<optional>`, `<variant>`, `<filesystem>`, `<any>` | header missing |
-| `std::byte`, `std::clamp`, `std::gcd` / `std::lcm`, `std::as_const` | **error** |
+**Not supported: MinGW.org GCC 6.3.0** (`C:\MinGW`), the previous low bar. It is
+a **win32** thread-model build: its libstdc++ has no `std::thread` /
+`std::mutex`, so it cannot compile the animation (`marquee.cpp`, `terminal.cpp`,
+`console.cpp`, `main.cpp`), with or without `-pthread`. It also hides `_fileno`
+under `-std=c++17` because strict ANSI mode is on. Do not add a workaround for
+it - threading is a requirement of the design, not an implementation detail.
 
-Safe on GCC 6.3 (also verified): `auto`, `constexpr`, range-based `for`,
-lambdas (including generic and `constexpr` lambdas), `std::move`,
-`std::make_unique`, nested namespace definitions (`namespace a::b`),
-`<map>`, `<vector>`, `<sstream>`, `<system_error>`.
-
-**Rule of thumb: write C++11/14 code.** The `-std=c++17` flag is a spec
-requirement, not permission to use the C++17 library or C++17 attributes. When
-in doubt, compile with GCC 6.3 before committing.
+Because the low bar is now GCC 14.2, the C++17 library and C++17 attributes are
+available. The code still reads conservatively on purpose (`std::move`,
+`constexpr`, range-based `for`, explicit signatures), and the features that were
+only ever blocked by GCC 6.3 - `if`-init statements, `[[nodiscard]]`,
+`std::clamp`, the `<optional>` / `<string_view>` headers - are declined in
+`warnings.md` as a *style* decision rather than a toolchain limit. Adopt any of
+them in their own commit, with `warnings.md` updated in the same change, instead
+of sprinkling them in.
 
 ## 5. Zero-warning policy
 
@@ -116,7 +125,8 @@ in doubt, compile with GCC 6.3 before committing.
   * `misc-non-private-member-variables-in-classes` - `Font` is a plain aggregate.
   * `misc-include-cleaner` - transitive standard headers are fine.
   * `bugprone-exception-escape` on `main` - startup failure has no recovery.
-  * `[[nodiscard]]` and if-init - blocked by GCC 6.3 (section 4).
+  * `[[nodiscard]]` and if-init - no longer blocked (section 4); left declined
+    so that adopting them is one deliberate change, not a sprinkle.
 * Patterns to keep (they keep clang-tidy clean):
   * `explicit` on constructors callable with one argument.
   * Sink parameters by value, then `std::move` into the member.
@@ -142,7 +152,7 @@ in doubt, compile with GCC 6.3 before committing.
 
 ## 7. Definition of done
 
-1. Builds warning-free on both compilers (section 5).
+1. Builds warning-free on both toolchains (sections 4 and 5).
 2. `test_os_emulator.bat` still passes (exit 0).
 3. A smoke session covers `help`, `set_text` (short and long), `set_speed`
    (valid and invalid), `start_marquee`, `stop_marquee`, an unknown command,
@@ -165,4 +175,5 @@ gitignored - never commit `.exe` / object files.
 * Never reopen the flat layout - headers live in `src/include/`.
 * Never edit `os_emulator.cpp` as part of marquee/console work; it is a
   separate deliverable.
-* Never leave the tree unbuildable or warning-producing on GCC 6.3.
+* Never leave the tree unbuildable or warning-producing on either toolchain
+  in section 4 (MSYS2 `ucrt64` GCC 14.2, CLion GCC 15.2).
