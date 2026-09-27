@@ -4,6 +4,17 @@ An interactive console shell (C++17, standard library only) that scrolls
 marquee text as ASCII art. The welcome title is the marquee band: `start_marquee`
 makes it scroll in place, while the command loop stays responsive.
 
+## Group and authors
+
+CSOPESY - Section S01 - Group 12
+
+| Author | Section |
+| --- | --- |
+| Trinidad, Nathan | S01 |
+| Singh, Nathaniel | S01 |
+| Quilantang, Jann Miro | S01 |
+| Saguin, VL Kirsten Camille | S01 |
+
 ## Current state
 
 * On launch, the program prints the group metadata block and enters a
@@ -25,7 +36,8 @@ makes it scroll in place, while the command loop stays responsive.
   right edge before the next copy enters at the left one. The animation runs on
   its own thread, so you can keep typing: `set_text`, `set_speed`, and `help`
   all work while it plays, and `stop_marquee` ends it. `set_speed` sets the
-  refresh interval (ms) between frames.
+  refresh interval (ms) between frames; the default is 50 ms, one column per
+  frame, which reads as a smooth scroll.
 * The animation needs an interactive terminal; when the output is redirected
   to a file or a pipe, `start_marquee` says so and stays stopped instead of
   writing escape sequences into your capture. The rows below the band are
@@ -52,21 +64,21 @@ font data lives under `assets/`:
 ```text
 src/main.cpp              - entry point: load font, run console
 src/include/              - module headers (.h)
-  ascii_art.h             - console-width query and ASCII-art rendering API
+  ascii_art.h             - ASCII-art rendering and band-window API
   asset_paths.h           - font-asset location API
   config.h                - defaults, version, developers, layout constants
   console.h               - console shell API
   font.h                  - glyph structures and font-loading API
   marquee.h               - marquee state, lifecycle, and animation API
-  terminal.h              - cursor control, output locking, screen clearing
+  terminal.h              - window width, cursor control, output locking
   text_utils.h            - trim/uppercase/positive-integer API
 src/components/           - module implementations (.cpp)
-  ascii_art.cpp           - width query, row rendering, band measurement
+  ascii_art.cpp           - row rendering and band measurement
   asset_paths.cpp         - assets/ then working-directory lookup
   console.cpp             - screen repaint, header block, REPL loop, dispatch
   font.cpp                - glyph parsing and font construction
   marquee.cpp             - marquee state and the scrolling frame loop
-  terminal.cpp            - band drawing, isatty/VT handling, screen clearing
+  terminal.cpp            - band drawing, window width, isatty/VT handling
   text_utils.cpp          - string helper implementations
 assets/ascii_art.txt      - raw glyph blocks, 6 rows per glyph, 48 glyphs
 assets/characters.txt     - glyph order, one character per line
@@ -86,20 +98,53 @@ then `<name>` in the working directory, so it runs both from the repository
 root and from a build directory (CMake copies the fonts next to the
 executable).
 
-## Quick start
+## How to run the program
+
+**Requirements.** A C++17 compiler with the **posix** thread model: MSYS2
+`ucrt64` GCC 14.2 or newer, or the GCC 15.2 that ships with CLion. On Linux or
+macOS any `g++` 14 or newer works. MinGW.org GCC 6.3.0 does not work - it is a
+win32 thread-model build with no `std::thread` / `std::mutex`, so it cannot
+compile the animation; see [AGENTS.md](AGENTS.md) section 4. If the `g++` on
+your `PATH` is that old 6.3 build, call the supported compiler by full path
+(`C:\msys64\ucrt64\bin\g++.exe`) and keep `C:\msys64\ucrt64\bin` on `PATH` so
+its runtime DLLs resolve.
+
+**Build** (either way, from the repository root):
 
 ```bat
-g++ -std=c++17 -pthread -Isrc/include src/main.cpp src/components/console.cpp ^
-    src/components/marquee.cpp src/components/font.cpp ^
-    src/components/ascii_art.cpp src/components/asset_paths.cpp ^
-    src/components/terminal.cpp src/components/text_utils.cpp -o csopesy.exe
-csopesy.exe
+:: direct build
+g++ -std=c++17 -pthread -Wall -Wextra -Wpedantic -Isrc/include ^
+    src/main.cpp src/components/console.cpp src/components/marquee.cpp ^
+    src/components/font.cpp src/components/ascii_art.cpp ^
+    src/components/asset_paths.cpp src/components/terminal.cpp ^
+    src/components/text_utils.cpp -o csopesy.exe
+
+:: CMake
+cmake -S . -B build
+cmake --build build
 ```
 
 `-pthread` is only needed where the thread library is separate (Linux, macOS);
 MinGW accepts it as well.
 
+**Run** from the repository root, or from a build directory after CMake has
+copied the font assets next to the executable. Use a real terminal window: the
+animation is refused when the output is redirected to a file or a pipe.
+
+```bat
+csopesy.exe
+```
+
+**Entry point.** The entry class file is `src/main.cpp`: it holds `int main()`,
+which loads the ASCII-art font and hands control to `marquee::Console`, the class
+that runs the `Command>` loop. It is the only file with a `main` function;
+everything else is a module, with its header in `src/include/<name>.h` and its
+implementation in `src/components/<name>.cpp`.
+
+**Sample session:**
+
 ```text
+Command> help
 Command> set_text Operating Systems are fun!
 Command> set_speed 150
 Command> start_marquee
@@ -136,3 +181,5 @@ script stops; test `"` input by typing it manually.
 
 Trinidad, Nathan | Singh, Nathaniel | Quilantang, Jann Miro |
 Saguin, VL Kirsten Camille
+
+CSOPESY - Section S01, Group 12.
