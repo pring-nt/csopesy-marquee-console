@@ -51,7 +51,7 @@ constexpr char kDefaultMarqueeText[] = "CSOPESY";
 constexpr int kDefaultMarqueeSpeed = 50;
 
 /// Date printed in the welcome header.
-constexpr char kVersionDate[] = "2026-09-18";
+constexpr char kVersionDate[] = "2026-09-27";
 
 /// Developer names printed in the welcome header.
 constexpr const char* kDevelopers[] = {

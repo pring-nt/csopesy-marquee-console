@@ -1,7 +1,7 @@
 # CSOPESY - Console CLI Specifications
 
 **Group Developers:** Trinidad, Nathan, Singh, Nathaniel, Quilantang, Jann Miro, Saguin, Kirsten Camille  
-**Version Date:** 2026-09-18  
+**Version Date:** 2026-09-27  
 **Language:** C++ (Standard: C++17 or later)
 
 ---
@@ -277,7 +277,7 @@ Singh, Nathaniel
 Quilantang, Jann Miro
 Saguin, VL Kirsten Camille
 
-Version date: 2026-09-18
+Version date: 2026-09-27
 
 Command> _
 ```
