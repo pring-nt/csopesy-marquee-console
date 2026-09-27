@@ -31,7 +31,14 @@ namespace {
 /// Longest single sleep of the animation thread, in milliseconds. The wait
 /// between frames is cut into chunks this long so that stop_marquee does not
 /// have to wait out a long interval before the thread notices.
-constexpr int kWakeUpGranularityMs = 20;
+///
+/// The chunk is also the floor on how precisely the interval can be kept: the
+/// platform timer tick is about 15 ms, so every chunk rounds up to the next
+/// tick and a small chunk stretches the frame. With 20 ms chunks a requested
+/// 50 ms frame measured 77 ms; with 50 ms chunks the same frame measured 60 ms,
+/// which is what makes the default scroll look smooth. stop_marquee now waits
+/// up to 50 ms instead of 20 ms before returning, which is imperceptible.
+constexpr int kWakeUpGranularityMs = 50;
 
 }  // namespace
 

@@ -43,7 +43,12 @@ constexpr char kDefaultMarqueeText[] = "CSOPESY";
 
 /// Refresh interval, in milliseconds, used until @c Marquee::setSpeed
 /// replaces it.
-constexpr int kDefaultMarqueeSpeed = 200;
+///
+/// The band advances one column per frame, so this value is also the time one
+/// column takes to travel. At the old 200 ms (five columns per second) the
+/// motion read as a stutter; 50 ms, twenty columns per second, is smooth to
+/// the eye and still slow enough to read the text as it goes past.
+constexpr int kDefaultMarqueeSpeed = 50;
 
 /// Date printed in the welcome header.
 constexpr char kVersionDate[] = "2026-09-18";

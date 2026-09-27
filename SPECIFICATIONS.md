@@ -181,7 +181,7 @@ The following state must be maintained across commands during a session:
 | Variable | Type | Initial Value | Modified By |
 | :--- | :--- | :--- | :--- |
 | `marqueeText` | `std::string` | `"CSOPESY"` | `set_text` |
-| `marqueeSpeed` | `int` (ms) | `200` | `set_speed` |
+| `marqueeSpeed` | `int` (ms) | `50` | `set_speed` |
 | `marqueeRunning` | `bool` | `false` | `start_marquee`, `stop_marquee` |
 
 ---
