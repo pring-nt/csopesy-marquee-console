@@ -14,19 +14,9 @@
 
 #include "ascii_art.h"
 
-#include <cstdlib>
-#include <istream>
-#include <ostream>
-#include <sstream>
-
 #include "config.h"
+#include "font.h"
 #include "text_utils.h"
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <sys/ioctl.h>
-#include <unistd.h>
-#endif
 
 namespace marquee {
 

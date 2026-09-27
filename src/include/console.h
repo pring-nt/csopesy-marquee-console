@@ -60,6 +60,8 @@ public:
 
     Console(const Console&) = delete;
     Console& operator=(const Console&) = delete;
+    Console(Console&&) = delete;
+    Console& operator=(Console&&) = delete;
 
     /**
      * @brief Paints the screen and runs the command loop until exit or EOF.

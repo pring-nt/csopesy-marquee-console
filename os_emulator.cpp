@@ -22,21 +22,24 @@
 #include <limits>
 #include <sstream>
 #include <string>
-#include <vector>
 
 namespace {
 
-/// Text shown in the header and used until @c set_text replaces it.
-const std::string kDefaultMarqueeText = "Welcome to CSOPESY!";
+/// Text shown in the header and used until @c set_text replaces it. A plain
+/// character array rather than a @c std::string so it is initialized at compile
+/// time: a namespace-scope @c std::string is dynamically initialized before
+/// @c main, and a throw there terminates the program.
+constexpr char kDefaultMarqueeText[] = "Welcome to CSOPESY!";
 
 /// Refresh interval, in milliseconds, used until @c set_speed replaces it.
 constexpr int kDefaultMarqueeSpeed = 200;
 
 /// Date printed in the welcome header.
-const std::string kVersionDate = "2026-09-18";
+constexpr char kVersionDate[] = "2026-09-18";
 
-/// Developer names printed in the welcome header.
-const std::vector<std::string> kDevelopers = {
+/// Developer names printed in the welcome header; constant-initialized for the
+/// same reason as @c kDefaultMarqueeText.
+constexpr const char* kDevelopers[] = {
     "Trinidad, Nathan",
     "Singh, Nathaniel",
     "Quilantang, Jann Miro",
@@ -72,7 +75,7 @@ void printHeader() {
     std::cout << kDefaultMarqueeText << '\n';
     std::cout << '\n';
     std::cout << "Group developer:\n";
-    for (const std::string& developer : kDevelopers) {
+    for (const char* developer : kDevelopers) {
         std::cout << developer << '\n';
     }
     std::cout << "\nVersion date: " << kVersionDate << "\n\n";

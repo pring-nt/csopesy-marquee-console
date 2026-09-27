@@ -97,7 +97,7 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
         std::string::size_type natural = 0;
         for (std::string::size_type row = 0; row < height; ++row) {
             natural = std::max(
-                natural, rightTrim(artLines[i * height + row]).size());
+                natural, rightTrim(artLines[(i * height) + row]).size());
         }
         if (natural == 0) {
             // All-blank block (e.g. the explicit space glyph): keep the
@@ -107,7 +107,7 @@ Font loadFont(const std::string& fontPath, const std::string& orderPath) {
         Glyph glyph;
         glyph.reserve(height);
         for (std::string::size_type row = 0; row < height; ++row) {
-            std::string text = rightTrim(artLines[i * height + row]);
+            std::string text = rightTrim(artLines[(i * height) + row]);
             text.resize(natural, ' ');
             glyph.push_back(text);
         }

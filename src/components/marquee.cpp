@@ -50,8 +50,7 @@ Marquee::Marquee(const Font& font, std::ostream& out, std::string text, int spee
       // Not const: the string is returned by the console to build the
       // "Text saved for marquee:" line, and const would block the move.
       text_(std::move(text)),
-      speedMs_(speedMs),
-      running_(false) {}
+      speedMs_(speedMs) {}
 
 Marquee::~Marquee() {
     stop();

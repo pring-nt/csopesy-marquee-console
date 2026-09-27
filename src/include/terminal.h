@@ -53,6 +53,11 @@ public:
 
     SyncBuf(const SyncBuf&) = delete;
     SyncBuf& operator=(const SyncBuf&) = delete;
+    SyncBuf(SyncBuf&&) = delete;
+    SyncBuf& operator=(SyncBuf&&) = delete;
+
+    /// Trivial destructor; the wrapped buffer is borrowed and outlives it.
+    ~SyncBuf() override = default;
 
 protected:
     std::streamsize xsputn(const char* text, std::streamsize count) override;

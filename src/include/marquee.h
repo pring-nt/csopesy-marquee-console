@@ -66,6 +66,8 @@ public:
 
     Marquee(const Marquee&) = delete;
     Marquee& operator=(const Marquee&) = delete;
+    Marquee(Marquee&&) = delete;
+    Marquee& operator=(Marquee&&) = delete;
 
     /// Stops the animation, if one is running, before the marquee is dropped.
     ~Marquee();
@@ -119,7 +121,7 @@ private:
     std::ostream& out_;      ///< Stream every frame is written to.
     std::string text_;       ///< Current marquee text.
     int speedMs_;            ///< Refresh interval in milliseconds.
-    bool running_;           ///< Whether the marquee is active.
+    bool running_ = false;   ///< Whether the marquee is active.
     std::thread worker_;     ///< Animation thread, joined by stop().
     mutable std::mutex stateMutex_;  ///< Guards the state the worker reads.
 };

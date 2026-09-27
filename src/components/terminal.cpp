@@ -142,8 +142,9 @@ bool canDrawInPlace() {
     }
 #ifdef _WIN32
     // cmd.exe interprets escape sequences only after virtual-terminal
-    // processing is enabled on the output handle.
-    const HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    // processing is enabled on the output handle. HANDLE is a pointer, so a
+    // const here would qualify the pointer, not the handle it points at.
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0;
     if (GetConsoleMode(handle, &mode) != 0) {
         if ((mode & kEnableVirtualTerminalProcessing) == 0) {
@@ -166,8 +167,9 @@ void clearBelowBand(int bandRows, std::ostream& out) {
     (void)out;
     // The rows are filled through the console API rather than with an
     // erase-to-end-of-screen sequence, so the band is never touched even if the
-    // screen was never written to.
-    const HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    // screen was never written to. HANDLE is a pointer, so a const here would
+    // qualify the pointer, not the handle it points at.
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO info;
     if (GetConsoleScreenBufferInfo(handle, &info) != 0) {
         for (int row = info.srWindow.Top + bandRows;
