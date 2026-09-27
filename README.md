@@ -15,6 +15,106 @@ CSOPESY - Section S01 - Group 12
 | Quilantang, Jann Miro | S01 |
 | Saguin, VL Kirsten Camille | S01 |
 
+## Entry point
+
+The entry class file is **`src/main.cpp`**: it holds `int main()`, which loads
+the ASCII-art font and hands control to `marquee::Console`, the class that runs
+the `Command>` loop. It is the only file in the project with a `main` function.
+
+Every other file is a module: a header in `src/include/<name>.h` and its
+implementation in `src/components/<name>.cpp`. `main.cpp` does nothing but wire
+them together.
+
+## How to run the program
+
+### Requirements
+
+A C++17 compiler with the **posix** thread model: MSYS2 `ucrt64` GCC 14.2 or
+newer, or the GCC 15.2 that ships with CLion. On Linux or macOS any `g++` 14 or
+newer works.
+
+MinGW.org GCC 6.3.0 does **not** work - it is a win32 thread-model build with no
+`std::thread` / `std::mutex`, so it cannot compile the animation. See
+[AGENTS.md](AGENTS.md) section 4. If the `g++` on your `PATH` is that old build,
+call the supported compiler by full path (`C:\msys64\ucrt64\bin\g++.exe`) and
+keep `C:\msys64\ucrt64\bin` on `PATH` so its own runtime DLLs resolve.
+
+Start the program in a real terminal window: the animation is refused when the
+output is redirected to a file or a pipe.
+
+### Option A - compile with g++
+
+From the repository root, in a shell that expands wildcards (Git Bash, MSYS2,
+WSL):
+
+```bash
+# build
+g++ -std=c++17 -pthread -Wall -Wextra -Wpedantic -I src/include \
+    src/main.cpp src/components/*.cpp -o csopesy.exe
+
+# run
+./csopesy.exe
+```
+
+`cmd.exe` does not expand wildcards for external programs, so list the sources
+there:
+
+```bat
+:: build
+g++ -std=c++17 -pthread -Wall -Wextra -Wpedantic -I src/include ^
+    src/main.cpp src/components/console.cpp src/components/marquee.cpp ^
+    src/components/font.cpp src/components/ascii_art.cpp ^
+    src/components/asset_paths.cpp src/components/terminal.cpp ^
+    src/components/text_utils.cpp -o csopesy.exe
+
+:: run
+csopesy.exe
+```
+
+What the flags do:
+
+* `-std=c++17` selects the language level and `-pthread` links the thread
+  library (only required where it is separate, as on Linux and macOS; MinGW
+  accepts and ignores it).
+* `-Wall -Wextra -Wpedantic` turn on the warning set the project is kept clean
+  under.
+* `-I src/include` adds the **header** search path, so `#include "font.h"`
+  resolves without a relative path.
+
+Adding a module therefore means adding one `src/components/<name>.cpp` file: the
+wildcard form picks it up automatically, and the `cmd.exe` form needs one more
+line.
+
+### Option B - build with CMake
+
+```bat
+cmake -S . -B build
+cmake --build build
+```
+
+The executable is called `csopesy_marquee_console`, and where it lands depends on
+the generator:
+
+```bat
+build\Debug\csopesy_marquee_console.exe          :: Visual Studio (multi-config)
+build\csopesy_marquee_console.exe                :: Ninja or Makefiles (single-config)
+cmake-build-debug\csopesy_marquee_console.exe    :: CLion's own build directory
+```
+
+CMake copies `ascii_art.txt` and `characters.txt` next to the executable, so it
+can be started from the build directory or from the repository root.
+
+### Sample session
+
+```text
+Command> help
+Command> set_text Operating Systems are fun!
+Command> set_speed 150
+Command> start_marquee
+Command> stop_marquee
+Command> exit
+```
+
 ## Current state
 
 * On launch, the program prints the group metadata block and enters a
@@ -53,8 +153,7 @@ CSOPESY - Section S01 - Group 12
 * All console output is plain ASCII so it renders correctly in `cmd`.
 
 See [SPECIFICATIONS.md](SPECIFICATIONS.md) for the full behavior spec and
-[CONTRIBUTING.md](CONTRIBUTING.md) for build/run instructions and
-contribution conventions.
+[CONTRIBUTING.md](CONTRIBUTING.md) for the contribution conventions.
 
 ## Repository layout
 
@@ -82,8 +181,6 @@ src/components/           - module implementations (.cpp)
   text_utils.cpp          - string helper implementations
 assets/ascii_art.txt      - raw glyph blocks, 6 rows per glyph, 48 glyphs
 assets/characters.txt     - glyph order, one character per line
-os_emulator.cpp           - plain-text variant (no ASCII-art conversion)
-test_os_emulator.bat      - automated smoke test for os_emulator
 SPECIFICATIONS.md         - behavior and font specification
 CONTRIBUTING.md           - conventions and how to build/run
 AGENTS.md                 - hard rules for contributors and AI agents
@@ -97,89 +194,3 @@ The console resolves each font file by trying `assets/<name>` first and
 then `<name>` in the working directory, so it runs both from the repository
 root and from a build directory (CMake copies the fonts next to the
 executable).
-
-## How to run the program
-
-**Requirements.** A C++17 compiler with the **posix** thread model: MSYS2
-`ucrt64` GCC 14.2 or newer, or the GCC 15.2 that ships with CLion. On Linux or
-macOS any `g++` 14 or newer works. MinGW.org GCC 6.3.0 does not work - it is a
-win32 thread-model build with no `std::thread` / `std::mutex`, so it cannot
-compile the animation; see [AGENTS.md](AGENTS.md) section 4. If the `g++` on
-your `PATH` is that old 6.3 build, call the supported compiler by full path
-(`C:\msys64\ucrt64\bin\g++.exe`) and keep `C:\msys64\ucrt64\bin` on `PATH` so
-its runtime DLLs resolve.
-
-**Build** (either way, from the repository root):
-
-```bat
-:: direct build
-g++ -std=c++17 -pthread -Wall -Wextra -Wpedantic -Isrc/include ^
-    src/main.cpp src/components/console.cpp src/components/marquee.cpp ^
-    src/components/font.cpp src/components/ascii_art.cpp ^
-    src/components/asset_paths.cpp src/components/terminal.cpp ^
-    src/components/text_utils.cpp -o csopesy.exe
-
-:: CMake
-cmake -S . -B build
-cmake --build build
-```
-
-`-pthread` is only needed where the thread library is separate (Linux, macOS);
-MinGW accepts it as well.
-
-**Run** from the repository root, or from a build directory after CMake has
-copied the font assets next to the executable. Use a real terminal window: the
-animation is refused when the output is redirected to a file or a pipe.
-
-```bat
-csopesy.exe
-```
-
-**Entry point.** The entry class file is `src/main.cpp`: it holds `int main()`,
-which loads the ASCII-art font and hands control to `marquee::Console`, the class
-that runs the `Command>` loop. It is the only file with a `main` function;
-everything else is a module, with its header in `src/include/<name>.h` and its
-implementation in `src/components/<name>.cpp`.
-
-**Sample session:**
-
-```text
-Command> help
-Command> set_text Operating Systems are fun!
-Command> set_speed 150
-Command> start_marquee
-Command> stop_marquee
-Command> exit
-```
-
-## Automated testing
-
-`test_os_emulator.bat` runs a full smoke pass over `os_emulator.exe`
-(no font files needed) and doubles as documentation of every command:
-
-```bat
-test_os_emulator.bat
-```
-
-It covers `help`, `set_text` (plain words, multi-word, punctuation and
-numbers, `&` input, missing and spaces-only arguments), `set_speed`
-(valid values plus missing, zero, negative, non-numeric, float, trailing
-characters, and overflow inputs), `start_marquee` / `stop_marquee`,
-unknown commands, case sensitivity (`HELP` is rejected), padded
-whitespace (`   help    ` still works), EOF without `exit`, and a full
-sample session. If `os_emulator.exe` is missing, the script builds it
-with `g++ -std=c++17 os_emulator.cpp -o os_emulator.exe` first.
-
-To add a case, copy any `TEST` block: pipe command lines into the exe
-with `(echo <command> & echo exit) | os_emulator.exe`. Escape
-`& | < > ^` as `^& ^| ^< ^> ^^` and write a literal `%` as `%%`.
-Never put an odd number of `"` on one piped `(echo ...)` line - an
-unbalanced quote swallows the closing paren/pipe and the rest of the
-script stops; test `"` input by typing it manually.
-
-## Group developers
-
-Trinidad, Nathan | Singh, Nathaniel | Quilantang, Jann Miro |
-Saguin, VL Kirsten Camille
-
-CSOPESY - Section S01, Group 12.
